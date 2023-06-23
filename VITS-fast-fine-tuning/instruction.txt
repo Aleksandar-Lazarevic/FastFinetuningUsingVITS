@@ -1,0 +1,51 @@
+1. Check nvidia and cuda version
+   nvidia-smi
+
+2. Python Environment
+   pip install imageio==2.4.1
+   pip install moviepy
+   pip install -r requirements.txt
+
+3. Download CJ MOdel  
+  wget https://huggingface.co/spaces/sayashi/vits-uma-genshin-honkai/resolve/main/model/D_0-p.pth -O ./pretrained_models/D_0.pth
+  wget https://huggingface.co/spaces/sayashi/vits-uma-genshin-honkai/resolve/main/model/G_0-p.pth -O ./pretrained_models/G_0.pth
+  wget https://huggingface.co/spaces/sayashi/vits-uma-genshin-honkai/resolve/main/model/config.json -O ./configs/finetune_speaker.json
+
+4. Prepare train data
+-Short audio
+   ./current_character_voice
+	/yueyue
+		1.wav(2-10s) 
+		...
+		8000.wav
+	/zheng   
+		1.wav
+		...
+		6000.wav
+	
+-Long audio
+   ./raw_audio
+	yueyue_01.wav
+	zheng_02.wav
+
+5. Preprocess
+   python denoise_audio.py
+   python short_audio_transcribe.py --whisper_size large
+   python long_audio_transcribe.py --whisper_size large
+   python preprocess_v2.py --add_auxiliary_data True --languages CJE
+
+6. Train
+tensorboard --logdir "./OUTPUT_MODEL"
+python finetune_speaker_v2.py -m "./OUTPUT_MODEL" --max_epochs 4000 --drop_speaker_embed True
+nvidia-smi
+
+7. Inference
+copy ./configs/modified_finetune_speaker.json to ./inferenece/finetune_speaker.json
+copy ./OUTPUT_MODEL/G_latest.pth to ./inference/G_latest.pth
+python VC_inference.py
+
+
+
+
+
+
